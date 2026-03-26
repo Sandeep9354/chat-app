@@ -41,7 +41,6 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      transition: opacity 0.3s ease;
     }
 
     /* Main Chat - Hidden by default */
@@ -514,6 +513,7 @@
   let unsubscribeTyping = null;
   let unsubscribeMessages = null;
   let heartbeatInterval = null;
+  let initialized = false; // Safety flag to prevent double init
 
   let permissionModal = null;
   let imagePreviewModal = null;
@@ -710,6 +710,7 @@
     await auth.signOut();
     currentUser = null;
     currentEmail = "";
+    initialized = false; // Reset flag on logout
     chatDiv.innerHTML = "";
     typingStatusDiv.innerHTML = "";
     mainChat.style.display = "none";
@@ -727,9 +728,9 @@
       let otherStatus = null;
       
       snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.email && data.email !== currentEmail && doc.id !== currentUser.uid) {
-          otherStatus = data;
+        // Use UID to identify other users, not email
+        if (doc.id !== currentUser.uid) {
+          otherStatus = doc.data();
         }
       });
       
@@ -781,7 +782,7 @@
       let someoneTyping = false;
       snapshot.forEach(doc => {
         const data = doc.data();
-        if (data.email && data.email !== currentEmail && data.typing === true) {
+        if (doc.id !== currentUser.uid && data.typing === true) {
           someoneTyping = true;
         }
       });
@@ -807,7 +808,10 @@
     
     try {
       await db.collection("chat-app").add(messageData);
-      if (textMsg) msgInput.focus();
+      // Keep keyboard open - don't blur, just keep focus
+      if (textMsg) {
+        msgInput.focus();
+      }
     } catch (error) {
       showToast("Error sending message: " + error.message, 2000);
     }
@@ -915,6 +919,10 @@
   }
   
   async function initAfterAuth(user) {
+    // Prevent double initialization
+    if (initialized) return;
+    initialized = true;
+    
     currentUser = user;
     currentEmail = user.email;
     
@@ -948,6 +956,7 @@
     if (text === "") return;
     await sendMessage(text);
     msgInput.value = "";
+    // Keep keyboard open - focus stays on input
     msgInput.focus();
     if (currentUser) db.collection("typing").doc(currentUser.uid).update({ typing: false }).catch(() => {});
   });
@@ -998,16 +1007,19 @@
   loginBtn.addEventListener("click", async () => {
     const email = loginEmail.value.trim();
     const pass = loginPassword.value.trim();
+    
     if (!email || !pass) {
       loginError.innerText = "Please fill email & password";
       return;
     }
+    
     loginBtn.disabled = true;
     loginBtn.innerText = "Signing in...";
     loginError.innerText = "";
+    
     try {
-      const user = await loginOrCreate(email, pass);
-      await initAfterAuth(user);
+      await loginOrCreate(email, pass);
+      // DON'T call initAfterAuth here - it will be called by auth listener
     } catch (err) {
       loginError.innerText = "Error: " + err.message;
       loginBtn.disabled = false;
@@ -1018,6 +1030,8 @@
   auth.onAuthStateChanged(async (user) => {
     if (user) {
       await initAfterAuth(user);
+      loginBtn.disabled = false;
+      loginBtn.innerText = "Sign in / Create account";
     } else {
       stopHeartbeat();
       if (unsubscribeStatus) unsubscribeStatus();
@@ -1027,6 +1041,7 @@
       loginScreen.style.display = "flex";
       loginBtn.disabled = false;
       loginBtn.innerText = "Sign in / Create account";
+      initialized = false;
     }
   });
   
