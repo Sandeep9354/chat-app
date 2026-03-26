@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>WhatsApp Clone — Full Features</title>
+  <!-- Bootstrap 5 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      overflow: hidden;
+      background: #0b141a;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', system-ui, sans-serif;
+    }
+
+    /* Custom WhatsApp Theme */
+    .whatsapp-bg-dark {
+      background: #111b21;
+    }
+    
+    .whatsapp-bg-header {
+      background: #202c33;
+    }
+    
+    .whatsapp-bg-input {
+      background: #2a3942;
+    }
+    
+    .whatsapp-green {
+      background: #00a884;
+    }
+    
+    .whatsapp-green-text {
+      color: #00a884;
+    }
+    
+    .whatsapp-message-me {
+      background: #005c4b;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+    
+    .whatsapp-message-other {
+      background: #202c33;
+      color: #e9edef;
+      border-bottom-left-radius: 5px;
+    }
+
+    .app-container {
+      height: 100vh;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Chat Area - NO ANIMATIONS */
+    .chat-area {
+      flex: 1;
+      overflow-y: auto;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .message-bubble {
+      max-width: 80%;
+      padding: 8px 12px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.4;
+      word-wrap: break-word;
+      position: relative;
+      display: inline-block;
+      clear: both;
+    }
+
+    .message-me {
+      align-self: flex-end;
+    }
+
+    .message-other {
+      align-self: flex-start;
+    }
+
+    .message-name {
+      font-size: 12px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: #aebac1;
+      display: block;
+    }
+
+    .message-content {
+      display: flex;
+      align-items: flex-end;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+
+    .message-image {
+      max-width: 200px;
+      max-height: 180px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+
+    .message-image:active {
+      transform: scale(0.98);
+    }
+
+    audio {
+      max-width: 180px;
+      height: 36px;
+      border-radius: 20px;
+    }
+
+    .tick {
+      font-size: 12px;
+      margin-left: 6px;
+      display: inline-flex;
+      align-items: center;
+      color: #aebac1;
+    }
+
+    .tick-seen {
+      color: #53bdeb;
+    }
+
+    .message-time {
+      font-size: 9px;
+      margin-left: 8px;
+      color: #8696a0;
+      align-self: flex-end;
+    }
+
+    .typing-indicator {
+      font-size: 12px;
+      padding: 6px 12px;
+      color: #8696a0;
+      font-style: italic;
+      background: #111b21;
+      flex-shrink: 0;
+      min-height: 32px;
+    }
+
+    /* Input Area */
+    .input-area {
+      background: #202c33;
+      padding: 10px 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      border-top: 1px solid #2a3942;
+      flex-shrink: 0;
+    }
+
+    .message-input {
+      flex: 1;
+      background: #2a3942;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 24px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+    }
+
+    .message-input:focus {
+      background: #3e4b54;
+    }
+
+    .icon-btn {
+      background: #2a3942;
+      border: none;
+      color: white;
+      font-size: 20px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .icon-btn:active {
+      transform: scale(0.95);
+    }
+
+    .send-btn {
+      background: #00a884;
+      border: none;
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .send-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* Login Panel */
+    .login-card {
+      background: #111b21;
+      border-radius: 28px;
+      padding: 30px 24px;
+      width: 90%;
+      max-width: 400px;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+    }
+
+    /* Toast */
+    .custom-toast {
+      position: fixed;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2a3942;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      z-index: 1050;
+      animation: slideUp 0.3s ease;
+      white-space: nowrap;
+    }
+
+    @keyframes slideUp {
+      from { bottom: 0; opacity: 0; }
+      to { bottom: 80px; opacity: 1; }
+    }
+
+    /* Modal Custom */
+    .modal-content {
+      background: #202c33;
+      color: #e9edef;
+      border: none;
+      border-radius: 24px;
+    }
+
+    .modal-header {
+      border-bottom-color: #2a3942;
+    }
+
+    .modal-footer {
+      border-top-color: #2a3942;
+    }
+
+    .btn-permission {
+      background: #00a884;
+      color: white;
+      border: none;
+      padding: 10px 24px;
+      border-radius: 24px;
+    }
+
+    .btn-permission:hover {
+      background: #00bf94;
+      color: white;
+    }
+
+    /* Online Status Dot */
+    .online-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #25d366;
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+
+    /* Scrollbar */
+    .chat-area::-webkit-scrollbar {
+      width: 5px;
+    }
+    .chat-area::-webkit-scrollbar-track {
+      background: #1e2a32;
+    }
+    .chat-area::-webkit-scrollbar-thumb {
+      background: #3e4b54;
+      border-radius: 5px;
+    }
+
+    @media (max-width: 576px) {
+      .message-bubble {
+        max-width: 85%;
+      }
+      .message-image {
+        max-width: 160px;
+        max-height: 140px;
+      }
+      .icon-btn, .send-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+      }
+      .message-input {
+        font-size: 14px;
+      }
+      .login-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loginScreen" class="d-flex justify-content-center align-items-center" style="height: 100vh; background: #0b141a;">
+  <div class="login-card">
+    <h2 class="text-center mb-4" style="background: linear-gradient(135deg, #25d366, #00a884); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🔥 WhatsApp Clone</h2>
+    <p class="text-center text-secondary mb-3" style="font-size: 12px;">📸 Images & 🎤 Voice messages included!</p>
+    <input type="email" id="loginEmail" class="form-control bg-dark text-white border-0 mb-2" placeholder="Email address" style="background: #202c33; border-radius: 28px; padding: 12px;">
+    <input type="password" id="loginPassword" class="form-control bg-dark text-white border-0 mb-3" placeholder="Password" style="background: #202c33; border-radius: 28px; padding: 12px;">
+    <button id="loginBtn" class="btn w-100" style="background: #00a884; color: white; border-radius: 30px; padding: 12px;">Sign in / Create account</button>
+    <div id="loginError" class="text-danger text-center mt-2" style="font-size: 12px;"></div>
+  </div>
+</div>
+
+<div id="mainChat" style="display: none; height: 100%;">
+  <div class="app-container">
+    <div class="whatsapp-bg-header p-3 d-flex align-items-center gap-2 flex-shrink-0">
+      <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+        <span class="text-white fw-bold">💬</span>
+      </div>
+      <div class="flex-grow-1">
+        <h3 class="mb-0 fs-6 fw-semibold">WhatsApp Group</h3>
+        <div id="status-badge" class="text-secondary" style="font-size: 11px;">🔄 Connecting...</div>
+      </div>
+      <button class="btn btn-secondary btn-sm rounded-pill" id="logoutBtn">
+        <i class="bi bi-box-arrow-right"></i> Logout
+      </button>
+    </div>
+
+    <div id="chat" class="chat-area"></div>
+    <div id="typingStatus" class="typing-indicator"></div>
+
+    <div class="input-area">
+      <input type="text" id="name" class="form-control bg-dark text-white border-0" placeholder="Name" maxlength="25" style="width: 100px; border-radius: 24px; padding: 8px 12px;">
+      <div class="d-flex gap-1">
+        <input type="file" id="imageInput" accept="image/jpeg,image/png,image/gif" style="display: none;">
+        <button class="icon-btn" id="attachImageBtn" title="Send Image">
+          <i class="bi bi-image"></i>
+        </button>
+        <input type="file" id="audioInput" accept="audio/*" style="display: none;">
+        <button class="icon-btn" id="attachAudioBtn" title="Send Voice">
+          <i class="bi bi-mic"></i>
+        </button>
+      </div>
+      <input type="text" id="msg" class="message-input" placeholder="Type a message">
+      <button class="send-btn" id="sendMsgBtn">
+        <i class="bi bi-send-fill"></i>
+      </button>
+    </div>
+    <div class="text-center text-secondary" style="font-size: 9px; padding: 5px; background: #2a3942;">
+      💡 Click images to view full size | Download available
+    </div>
+  </div>
+</div>
+
+<!-- Permission Modal -->
+<div class="modal fade" id="permissionModal" tabindex="-1" data-bs-backdrop="static" data-bs-keyboard="false">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header border-0 pb-0">
+        <h5 class="modal-title mx-auto">🔔 Enable Notifications</h5>
+      </div>
+      <div class="modal-body text-center py-4">
+        <i class="bi bi-bell-fill" style="font-size: 48px; color: #00a884;"></i>
+        <p class="mt-3 mb-2">Get instant alerts when you receive new messages!</p>
+        <small class="text-secondary">We'll notify you about new messages even when you're not in this tab.</small>
+      </div>
+      <div class="modal-footer border-0 justify-content-center pb-4">
+        <button class="btn btn-permission px-4" id="allowNotificationsBtn">
+          <i class="bi bi-check-circle me-2"></i>Allow Notifications
+        </button>
+        <button class="btn btn-secondary px-4" id="laterBtn" data-bs-dismiss="modal">
+          <i class="bi bi-clock me-2"></i>Later
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Image Preview Modal -->
+<div class="modal fade" id="imagePreviewModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content bg-transparent border-0">
+      <div class="text-end mb-2">
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <img id="previewImage" src="" alt="Preview" class="img-fluid rounded" style="max-height: 80vh; object-fit: contain;">
+      <div class="d-flex justify-content-center gap-3 mt-3">
+        <button class="btn btn-permission" id="downloadPreviewBtn">
+          <i class="bi bi-download"></i> Download
+        </button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Close
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCAuI9ydjVgS7J9oh-5dlZ8F24k6uHsT48",
+    authDomain: "my-chat-app-ef41e.firebaseapp.com",
+    projectId: "my-chat-app-ef41e",
+    storageBucket: "my-chat-app-ef41e.firebasestorage.app",
+    messagingSenderId: "816493322871",
+    appId: "1:816493322871:web:4ad73b96e9177f55965c72",
+    measurementId: "G-34M67XNS1F"
+  };
+  
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
+
+  let currentUser = null;
+  let currentEmail = "";
+  let typingTimeout = null;
+  let unsubscribeStatus = null;
+  let unsubscribeTyping = null;
+  let unsubscribeMessages = null;
+
+  let permissionModal = null;
+  let imagePreviewModal = null;
+
+  const loginScreen = document.getElementById("loginScreen");
+  const mainChat = document.getElementById("mainChat");
+  const loginEmail = document.getElementById("loginEmail");
+  const loginPassword = document.getElementById("loginPassword");
+  const loginBtn = document.getElementById("loginBtn");
+  const loginError = document.getElementById("loginError");
+  const logoutBtn = document.getElementById("logoutBtn");
+  const chatDiv = document.getElementById("chat");
+  const msgInput = document.getElementById("msg");
+  const nameInput = document.getElementById("name");
+  const sendBtn = document.getElementById("sendMsgBtn");
+  const attachImageBtn = document.getElementById("attachImageBtn");
+  const imageInput = document.getElementById("imageInput");
+  const attachAudioBtn = document.getElementById("attachAudioBtn");
+  const audioInput = document.getElementById("audioInput");
+  const statusBadge = document.getElementById("status-badge");
+  const typingStatusDiv = document.getElementById("typingStatus");
+
+  // Initialize Modals
+  document.addEventListener('DOMContentLoaded', () => {
+    permissionModal = new bootstrap.Modal(document.getElementById('permissionModal'));
+    imagePreviewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+  });
+
+  function checkAndRequestNotificationPermission() {
+    if (!("Notification" in window)) return false;
+    
+    if (Notification.permission === "granted") {
+      return true;
+    } else if (Notification.permission === "denied") {
+      showToast("🔔 Notifications blocked. Please enable in browser settings", 4000);
+      return false;
+    } else if (Notification.permission === "default") {
+      setTimeout(() => {
+        permissionModal.show();
+      }, 1000);
+      return false;
+    }
+    return false;
+  }
+
+  document.getElementById("allowNotificationsBtn").addEventListener("click", async () => {
+    try {
+      const permission = await Notification.requestPermission();
+      permissionModal.hide();
+      if (permission === "granted") {
+        showToast("✅ Notifications enabled!", 3000);
+      } else {
+        showToast("❌ Notifications disabled.", 3000);
+      }
+    } catch (error) {
+      permissionModal.hide();
+    }
+  });
+
+  document.getElementById("laterBtn").addEventListener("click", () => {
+    permissionModal.hide();
+    showToast("🔔 You can enable notifications later from browser settings", 3000);
+  });
+
+  function showToast(message, duration = 2000) {
+    const toast = document.createElement("div");
+    toast.className = "custom-toast";
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), duration);
+  }
+
+  function showNotification(senderName, messageText) {
+    if (Notification.permission === "granted" && document.hidden) {
+      new Notification(`💬 ${senderName}`, {
+        body: messageText,
+        icon: "https://img.icons8.com/color/48/whatsapp--v1.png"
+      });
+    }
+  }
+
+  function compressImage(file, maxSizeKB = 200) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (e) => {
+        const img = new Image();
+        img.src = e.target.result;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 800;
+          
+          if (width > height && width > maxDim) {
+            height *= maxDim / width;
+            width = maxDim;
+          } else if (height > maxDim) {
+            width *= maxDim / height;
+            height = maxDim;
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          let quality = 0.7;
+          let dataUrl = canvas.toDataURL('image/jpeg', quality);
+          
+          while (dataUrl.length > maxSizeKB * 1024 && quality > 0.3) {
+            quality -= 0.1;
+            dataUrl = canvas.toDataURL('image/jpeg', quality);
+          }
+          
+          resolve(dataUrl);
+        };
+        img.onerror = reject;
+      };
+      reader.onerror = reject;
+    });
+  }
+
+  function audioToBase64(file) {
+    return new Promise((resolve, reject) => {
+      if (file.size > 500 * 1024) {
+        reject(new Error("Audio too large! Max 500KB (~30 seconds)"));
+        return;
+      }
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+    });
+  }
+
+  async function setOnlineStatus(isOnline) {
+    if (!currentUser) return;
+    try {
+      await db.collection("status").doc(currentUser.uid).set({
+        email: currentEmail,
+        online: isOnline,
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    } catch (error) {
+      console.error("Status error:", error);
+    }
+  }
+
+  async function logout() {
+    if (currentUser) {
+      await setOnlineStatus(false);
+    }
+    if (unsubscribeStatus) unsubscribeStatus();
+    if (unsubscribeTyping) unsubscribeTyping();
+    if (unsubscribeMessages) unsubscribeMessages();
+    await auth.signOut();
+    currentUser = null;
+    currentEmail = "";
+    chatDiv.innerHTML = "";
+    typingStatusDiv.innerHTML = "";
+    mainChat.style.display = "none";
+    loginScreen.style.display = "flex";
+    loginEmail.value = "";
+    loginPassword.value = "";
+    loginError.innerText = "";
+    showToast("✅ Logged out successfully!");
+  }
+
+  window.addEventListener("beforeunload", () => {
+    if (currentUser) {
+      db.collection("status").doc(currentUser.uid).update({
+        online: false,
+        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+      }).catch(() => {});
+    }
+  });
+
+  function listenStatus() {
+    if (!currentUser) return;
+    unsubscribeStatus = db.collection("status").onSnapshot(snapshot => {
+      if (!currentUser) return;
+      let otherStatus = null;
+      let otherUserFound = false;
+      
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.email && data.email !== currentEmail && doc.id !== currentUser.uid) {
+          otherStatus = data;
+          otherUserFound = true;
+        }
+      });
+      
+      if (otherUserFound && otherStatus) {
+        if (otherStatus.online === true) {
+          statusBadge.innerHTML = `<span class="online-dot"></span> Online`;
+        } else {
+          let lastSeenTime = otherStatus.lastSeen;
+          if (lastSeenTime) {
+            let date = lastSeenTime.toDate ? lastSeenTime.toDate() : new Date(lastSeenTime);
+            let timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            let dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+            let today = new Date();
+            let yesterday = new Date(today);
+            yesterday.setDate(yesterday.getDate() - 1);
+            
+            if (date.toDateString() === today.toDateString()) {
+              statusBadge.innerHTML = `🕘 Last seen today at ${timeStr}`;
+            } else if (date.toDateString() === yesterday.toDateString()) {
+              statusBadge.innerHTML = `🕘 Last seen yesterday at ${timeStr}`;
+            } else {
+              statusBadge.innerHTML = `🕘 Last seen on ${dateStr} at ${timeStr}`;
+            }
+          } else {
+            statusBadge.innerHTML = `🕘 Last seen recently`;
+          }
+        }
+      } else {
+        statusBadge.innerHTML = `<span class="online-dot"></span> Online`;
+      }
+    }, (error) => {
+      console.error("Status listener error:", error);
+      statusBadge.innerHTML = `<span class="online-dot"></span> Online`;
+    });
+  }
+
+  function handleTyping() {
+    if (!currentUser) return;
+    const typingRef = db.collection("typing").doc(currentUser.uid);
+    typingRef.set({ typing: true, email: currentEmail, name: nameInput.value.trim() || "User" }).catch(() => {});
+    if (typingTimeout) clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+      typingRef.update({ typing: false }).catch(() => {});
+    }, 1200);
+  }
+
+  function listenTyping() {
+    if (!currentUser) return;
+    unsubscribeTyping = db.collection("typing").onSnapshot(snapshot => {
+      if (!currentUser) return;
+      let someoneTyping = false;
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.email && data.email !== currentEmail && data.typing === true) {
+          someoneTyping = true;
+        }
+      });
+      typingStatusDiv.innerHTML = someoneTyping ? "✍️ Someone is typing..." : "";
+    });
+  }
+
+  async function sendMessage(textMsg, imageBase64 = null, audioBase64 = null) {
+    if (!currentUser) return;
+    let displayName = nameInput.value.trim();
+    if (!displayName) displayName = currentEmail.split('@')[0];
+    if (!textMsg && !imageBase64 && !audioBase64) return;
+    
+    const messageData = {
+      name: displayName,
+      email: currentEmail,
+      time: firebase.firestore.FieldValue.serverTimestamp(),
+      seen: false
+    };
+    if (textMsg) messageData.text = textMsg;
+    if (imageBase64) messageData.imageBase64 = imageBase64;
+    if (audioBase64) messageData.audioBase64 = audioBase64;
+    
+    try {
+      await db.collection("chat-app").add(messageData);
+      if (textMsg) msgInput.focus();
+    } catch (error) {
+      showToast("Error sending message: " + error.message, 2000);
+    }
+  }
+
+  function listenMessages() {
+    if (!currentUser) return;
+    unsubscribeMessages = db.collection("chat-app")
+      .orderBy("time", "asc")
+      .onSnapshot(snapshot => {
+        if (!currentUser) return;
+        
+        let wasAtBottom = chatDiv.scrollHeight - chatDiv.scrollTop <= chatDiv.clientHeight + 100;
+        let html = "";
+        
+        snapshot.forEach(doc => {
+          const d = doc.data();
+          const isMe = d.email === currentEmail;
+          const bubbleClass = isMe ? "message-me" : "message-other";
+          const bgClass = isMe ? "whatsapp-message-me" : "whatsapp-message-other";
+          
+          if (!isMe && d.seen === false) {
+            doc.ref.update({ seen: true }).catch(() => {});
+          }
+          
+          let tickHtml = "";
+          if (isMe) {
+            tickHtml = `<span class="tick ${d.seen ? 'tick-seen' : ''}">${d.seen ? '✓✓' : '✓'}</span>`;
+          }
+          
+          let contentHtml = "";
+          if (d.text) contentHtml = `<div class="message-text">${escapeHtml(d.text)}</div>`;
+          if (d.imageBase64) contentHtml += `<img class="message-image" src="${d.imageBase64}" alt="image" loading="lazy" style="cursor: pointer;">`;
+          if (d.audioBase64) contentHtml += `<audio controls src="${d.audioBase64}" preload="metadata"></audio>`;
+          
+          let timeStr = "";
+          if (d.time) {
+            let date = d.time.toDate ? d.time.toDate() : new Date(d.time);
+            timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          }
+          
+          html += `
+            <div class="message-bubble ${bgClass} ${bubbleClass}">
+              <div class="message-name">${escapeHtml(d.name)}</div>
+              <div class="message-content">
+                ${contentHtml}
+                <span class="message-time">${timeStr}</span>
+                ${tickHtml}
+              </div>
+            </div>
+          `;
+        });
+        
+        chatDiv.innerHTML = html;
+        
+        if (wasAtBottom) {
+          setTimeout(() => {
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+          }, 50);
+        }
+        
+        snapshot.docChanges().forEach(change => {
+          if (change.type === "added") {
+            const newMsg = change.doc.data();
+            if (newMsg.email !== currentEmail) {
+              let notificationText = newMsg.text || (newMsg.imageBase64 ? "📸 Image" : (newMsg.audioBase64 ? "🎤 Voice message" : "New message"));
+              showNotification(newMsg.name, notificationText);
+            }
+          }
+        });
+      }, (error) => {
+        console.error("Messages listener error:", error);
+        if (error.code === "permission-denied") {
+          showToast("⚠️ Firebase permissions error! Please update security rules.", 5000);
+        }
+      });
+  }
+  
+  function escapeHtml(str) {
+    if (!str) return "";
+    return str.replace(/[&<>]/g, function(m) {
+      if (m === '&') return '&amp;';
+      if (m === '<') return '&lt;';
+      if (m === '>') return '&gt;';
+      return m;
+    });
+  }
+  
+  function showChatUI() {
+    loginScreen.style.display = "none";
+    mainChat.style.display = "block";
+    setTimeout(() => {
+      msgInput.focus();
+      chatDiv.scrollTop = chatDiv.scrollHeight;
+    }, 300);
+  }
+  
+  async function loginOrCreate(email, password) {
+    if (!email || !password) throw new Error("Enter email and password");
+    try {
+      let userCred = await auth.signInWithEmailAndPassword(email, password);
+      return userCred.user;
+    } catch (error) {
+      if (error.code === 'auth/user-not-found') {
+        let newUser = await auth.createUserWithEmailAndPassword(email, password);
+        return newUser.user;
+      }
+      throw error;
+    }
+  }
+  
+  async function initAfterAuth(user) {
+    currentUser = user;
+    currentEmail = user.email;
+    await setOnlineStatus(true);
+    
+    let savedName = localStorage.getItem(`wa_name_${user.uid}`);
+    if (savedName) nameInput.value = savedName;
+    nameInput.addEventListener("change", () => {
+      localStorage.setItem(`wa_name_${user.uid}`, nameInput.value);
+    });
+    
+    listenMessages();
+    listenStatus();
+    listenTyping();
+    msgInput.addEventListener("input", handleTyping);
+    
+    checkAndRequestNotificationPermission();
+    
+    showChatUI();
+  }
+  
+  logoutBtn.addEventListener("click", async () => {
+    if (confirm("Are you sure you want to logout?")) await logout();
+  });
+  
+  sendBtn.addEventListener("click", async () => {
+    let text = msgInput.value.trim();
+    if (text === "") return;
+    await sendMessage(text);
+    msgInput.value = "";
+    msgInput.focus();
+    if (currentUser) db.collection("typing").doc(currentUser.uid).update({ typing: false }).catch(() => {});
+  });
+  
+  msgInput.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      sendBtn.click();
+    }
+  });
+  
+  attachImageBtn.addEventListener("click", () => imageInput.click());
+  
+  imageInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast("🖼️ Compressing image...");
+    try {
+      const compressed = await compressImage(file, 200);
+      await sendMessage(null, compressed, null);
+      showToast("✓ Image sent");
+    } catch(err) {
+      alert("Image error: " + err.message);
+    } finally {
+      imageInput.value = "";
+      msgInput.focus();
+    }
+  });
+  
+  attachAudioBtn.addEventListener("click", () => audioInput.click());
+  
+  audioInput.addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    showToast("🎤 Converting voice...");
+    try {
+      const base64 = await audioToBase64(file);
+      await sendMessage(null, null, base64);
+      showToast("✓ Voice message sent");
+    } catch(err) {
+      alert("Audio error: " + err.message);
+    } finally {
+      audioInput.value = "";
+      msgInput.focus();
+    }
+  });
+  
+  loginBtn.addEventListener("click", async () => {
+    const email = loginEmail.value.trim();
+    const pass = loginPassword.value.trim();
+    if (!email || !pass) {
+      loginError.innerText = "Please fill email & password";
+      return;
+    }
+    loginBtn.disabled = true;
+    loginBtn.innerText = "Signing in...";
+    loginError.innerText = "";
+    try {
+      const user = await loginOrCreate(email, pass);
+      await initAfterAuth(user);
+    } catch (err) {
+      loginError.innerText = "Error: " + err.message;
+      loginBtn.disabled = false;
+      loginBtn.innerText = "Sign in / Create account";
+    }
+  });
+  
+  auth.onAuthStateChanged(async (user) => {
+    if (user) {
+      await initAfterAuth(user);
+    } else {
+      if (unsubscribeStatus) unsubscribeStatus();
+      if (unsubscribeTyping) unsubscribeTyping();
+      if (unsubscribeMessages) unsubscribeMessages();
+      mainChat.style.display = "none";
+      loginScreen.style.display = "flex";
+      loginBtn.disabled = false;
+      loginBtn.innerText = "Sign in / Create account";
+    }
+  });
+  
+  document.addEventListener('click', (e) => {
+    if (e.target.classList && e.target.classList.contains('message-image')) {
+      const previewImg = document.getElementById('previewImage');
+      previewImg.src = e.target.src;
+      imagePreviewModal.show();
+      
+      document.getElementById('downloadPreviewBtn').onclick = () => {
+        const link = document.createElement('a');
+        link.href = previewImg.src;
+        link.download = `whatsapp_image_${Date.now()}.jpg`;
+        link.click();
+        showToast("📥 Image downloaded!");
+      };
+    }
+  });
+  
+  setInterval(() => {
+    if (currentUser && nameInput.value.trim() === "") {
+      nameInput.value = currentEmail.split('@')[0];
+      localStorage.setItem(`wa_name_${currentUser.uid}`, nameInput.value);
+    }
+  }, 500);
+</script>
+</body>
+</html>
