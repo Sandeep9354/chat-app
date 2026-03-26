@@ -19,16 +19,46 @@
       height: 100%;
       width: 100%;
       background: #0b141a;
-      overflow: auto;
+      overflow: hidden;
+      position: fixed;
+      top: 0;
+      left: 0;
     }
 
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', system-ui, sans-serif;
     }
 
+    /* Login Screen - Full overlay */
+    #loginScreen {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #0b141a;
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Main Chat - Hidden by default */
+    #mainChat {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #111b21;
+      z-index: 1;
+      display: none;
+    }
+
     .app-container {
-      height: 100vh;
-      height: 100dvh;
+      height: 100%;
+      width: 100%;
       display: flex;
       flex-direction: column;
       overflow: hidden;
@@ -359,7 +389,8 @@
 </head>
 <body>
 
-<div id="loginScreen" class="d-flex justify-content-center align-items-center" style="height: 100vh; background: #0b141a;">
+<!-- Login Screen -->
+<div id="loginScreen">
   <div class="login-card">
     <h2 class="text-center mb-4" style="background: linear-gradient(135deg, #25d366, #00a884); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">🔥 WhatsApp Clone</h2>
     <p class="text-center text-secondary mb-3" style="font-size: 12px;">📸 Images & 🎤 Voice messages included!</p>
@@ -370,7 +401,8 @@
   </div>
 </div>
 
-<div id="mainChat" style="display: none; height: 100%;">
+<!-- Main Chat -->
+<div id="mainChat">
   <div class="app-container">
     <div class="whatsapp-bg-header p-3 d-flex align-items-center gap-2 flex-shrink-0">
       <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
@@ -545,10 +577,8 @@
     if (!currentUser) return;
     
     if (document.hidden) {
-      // Update last seen immediately when tab is hidden
       updateLastSeen();
     } else {
-      // Update last seen when tab becomes visible again
       updateLastSeen();
     }
   });
