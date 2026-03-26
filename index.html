@@ -26,39 +26,6 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', system-ui, sans-serif;
     }
 
-    /* Custom WhatsApp Theme */
-    .whatsapp-bg-dark {
-      background: #111b21;
-    }
-    
-    .whatsapp-bg-header {
-      background: #202c33;
-    }
-    
-    .whatsapp-bg-input {
-      background: #2a3942;
-    }
-    
-    .whatsapp-green {
-      background: #00a884;
-    }
-    
-    .whatsapp-green-text {
-      color: #00a884;
-    }
-    
-    .whatsapp-message-me {
-      background: #005c4b;
-      color: white;
-      border-bottom-right-radius: 5px;
-    }
-    
-    .whatsapp-message-other {
-      background: #202c33;
-      color: #e9edef;
-      border-bottom-left-radius: 5px;
-    }
-
     .app-container {
       height: 100vh;
       height: 100dvh;
@@ -67,7 +34,10 @@
       overflow: hidden;
     }
 
-    /* Chat Area - NO ANIMATIONS */
+    .whatsapp-bg-header {
+      background: #202c33;
+    }
+
     .chat-area {
       flex: 1;
       overflow-y: auto;
@@ -98,6 +68,18 @@
       align-self: flex-start;
     }
 
+    .whatsapp-message-me {
+      background: #005c4b;
+      color: white;
+      border-bottom-right-radius: 5px;
+    }
+
+    .whatsapp-message-other {
+      background: #202c33;
+      color: #e9edef;
+      border-bottom-left-radius: 5px;
+    }
+
     .message-name {
       font-size: 12px;
       font-weight: 600;
@@ -118,11 +100,6 @@
       max-height: 180px;
       border-radius: 12px;
       cursor: pointer;
-      transition: transform 0.2s;
-    }
-
-    .message-image:active {
-      transform: scale(0.98);
     }
 
     audio {
@@ -160,7 +137,6 @@
       min-height: 32px;
     }
 
-    /* Input Area */
     .input-area {
       background: #202c33;
       padding: 10px 12px;
@@ -195,7 +171,6 @@
       height: 40px;
       border-radius: 50%;
       cursor: pointer;
-      transition: 0.2s;
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -214,14 +189,12 @@
       color: white;
       font-weight: bold;
       cursor: pointer;
-      transition: 0.2s;
     }
 
     .send-btn:active {
       transform: scale(0.95);
     }
 
-    /* Login Panel */
     .login-card {
       background: #111b21;
       border-radius: 28px;
@@ -231,7 +204,6 @@
       box-shadow: 0 10px 25px rgba(0,0,0,0.4);
     }
 
-    /* Toast */
     .custom-toast {
       position: fixed;
       bottom: 80px;
@@ -242,16 +214,9 @@
       border-radius: 20px;
       font-size: 12px;
       z-index: 1050;
-      animation: slideUp 0.3s ease;
       white-space: nowrap;
     }
 
-    @keyframes slideUp {
-      from { bottom: 0; opacity: 0; }
-      to { bottom: 80px; opacity: 1; }
-    }
-
-    /* Modal Custom */
     .modal-content {
       background: #202c33;
       color: #e9edef;
@@ -280,7 +245,6 @@
       color: white;
     }
 
-    /* Online Status Dot */
     .online-dot {
       display: inline-block;
       width: 8px;
@@ -296,7 +260,6 @@
       100% { opacity: 1; }
     }
 
-    /* Scrollbar */
     .chat-area::-webkit-scrollbar {
       width: 5px;
     }
@@ -320,12 +283,6 @@
         width: 38px;
         height: 38px;
         font-size: 18px;
-      }
-      .message-input {
-        font-size: 14px;
-      }
-      .login-card {
-        padding: 20px;
       }
     }
   </style>
@@ -454,6 +411,7 @@
   let unsubscribeStatus = null;
   let unsubscribeTyping = null;
   let unsubscribeMessages = null;
+  let heartbeatInterval = null;
 
   let permissionModal = null;
   let imagePreviewModal = null;
@@ -476,23 +434,62 @@
   const statusBadge = document.getElementById("status-badge");
   const typingStatusDiv = document.getElementById("typingStatus");
 
-  // Initialize Modals
+  // Initialize Modals on DOM load
   document.addEventListener('DOMContentLoaded', () => {
     permissionModal = new bootstrap.Modal(document.getElementById('permissionModal'));
     imagePreviewModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
   });
 
+  // Heartbeat - Update last seen every 10 seconds
+  function startHeartbeat() {
+    if (heartbeatInterval) clearInterval(heartbeatInterval);
+    heartbeatInterval = setInterval(() => {
+      if (currentUser) {
+        db.collection("status").doc(currentUser.uid).update({
+          lastSeen: firebase.firestore.FieldValue.serverTimestamp()
+        }).catch(() => {});
+      }
+    }, 10000);
+  }
+
+  function stopHeartbeat() {
+    if (heartbeatInterval) {
+      clearInterval(heartbeatInterval);
+      heartbeatInterval = null;
+    }
+  }
+
+  // Visibility change detection (tab close/minimize)
+  document.addEventListener("visibilitychange", () => {
+    if (!currentUser) return;
+    
+    if (document.hidden) {
+      setOnlineStatus(false);
+    } else {
+      setOnlineStatus(true);
+    }
+  });
+
   function checkAndRequestNotificationPermission() {
     if (!("Notification" in window)) return false;
-    
+
     if (Notification.permission === "granted") {
       return true;
-    } else if (Notification.permission === "denied") {
-      showToast("🔔 Notifications blocked. Please enable in browser settings", 4000);
+    } 
+    else if (Notification.permission === "denied") {
+      showToast("🔔 Notifications blocked. Enable from settings", 4000);
       return false;
-    } else if (Notification.permission === "default") {
+    } 
+    else if (Notification.permission === "default") {
       setTimeout(() => {
-        permissionModal.show();
+        if (permissionModal) {
+          permissionModal.show();
+        } else {
+          console.log("Modal not ready yet, retrying...");
+          setTimeout(() => {
+            if (permissionModal) permissionModal.show();
+          }, 500);
+        }
       }, 1000);
       return false;
     }
@@ -502,19 +499,19 @@
   document.getElementById("allowNotificationsBtn").addEventListener("click", async () => {
     try {
       const permission = await Notification.requestPermission();
-      permissionModal.hide();
+      if (permissionModal) permissionModal.hide();
       if (permission === "granted") {
         showToast("✅ Notifications enabled!", 3000);
       } else {
         showToast("❌ Notifications disabled.", 3000);
       }
     } catch (error) {
-      permissionModal.hide();
+      if (permissionModal) permissionModal.hide();
     }
   });
 
   document.getElementById("laterBtn").addEventListener("click", () => {
-    permissionModal.hide();
+    if (permissionModal) permissionModal.hide();
     showToast("🔔 You can enable notifications later from browser settings", 3000);
   });
 
@@ -607,6 +604,7 @@
     if (currentUser) {
       await setOnlineStatus(false);
     }
+    stopHeartbeat();
     if (unsubscribeStatus) unsubscribeStatus();
     if (unsubscribeTyping) unsubscribeTyping();
     if (unsubscribeMessages) unsubscribeMessages();
@@ -623,49 +621,45 @@
     showToast("✅ Logged out successfully!");
   }
 
-  window.addEventListener("beforeunload", () => {
-    if (currentUser) {
-      db.collection("status").doc(currentUser.uid).update({
-        online: false,
-        lastSeen: firebase.firestore.FieldValue.serverTimestamp()
-      }).catch(() => {});
-    }
-  });
-
   function listenStatus() {
     if (!currentUser) return;
     unsubscribeStatus = db.collection("status").onSnapshot(snapshot => {
       if (!currentUser) return;
       let otherStatus = null;
-      let otherUserFound = false;
       
       snapshot.forEach(doc => {
         const data = doc.data();
         if (data.email && data.email !== currentEmail && doc.id !== currentUser.uid) {
           otherStatus = data;
-          otherUserFound = true;
         }
       });
       
-      if (otherUserFound && otherStatus) {
+      if (otherStatus) {
         if (otherStatus.online === true) {
           statusBadge.innerHTML = `<span class="online-dot"></span> Online`;
         } else {
           let lastSeenTime = otherStatus.lastSeen;
           if (lastSeenTime) {
             let date = lastSeenTime.toDate ? lastSeenTime.toDate() : new Date(lastSeenTime);
-            let timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            let dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
-            let today = new Date();
-            let yesterday = new Date(today);
-            yesterday.setDate(yesterday.getDate() - 1);
+            let now = new Date();
+            let diffSeconds = (now - date) / 1000;
             
-            if (date.toDateString() === today.toDateString()) {
-              statusBadge.innerHTML = `🕘 Last seen today at ${timeStr}`;
-            } else if (date.toDateString() === yesterday.toDateString()) {
-              statusBadge.innerHTML = `🕘 Last seen yesterday at ${timeStr}`;
+            if (diffSeconds > 20) {
+              let timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+              let dateStr = date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+              let today = new Date();
+              let yesterday = new Date(today);
+              yesterday.setDate(yesterday.getDate() - 1);
+              
+              if (date.toDateString() === today.toDateString()) {
+                statusBadge.innerHTML = `🕘 Last seen today at ${timeStr}`;
+              } else if (date.toDateString() === yesterday.toDateString()) {
+                statusBadge.innerHTML = `🕘 Last seen yesterday at ${timeStr}`;
+              } else {
+                statusBadge.innerHTML = `🕘 Last seen on ${dateStr} at ${timeStr}`;
+              }
             } else {
-              statusBadge.innerHTML = `🕘 Last seen on ${dateStr} at ${timeStr}`;
+              statusBadge.innerHTML = `<span class="online-dot"></span> Online`;
             }
           } else {
             statusBadge.innerHTML = `🕘 Last seen recently`;
@@ -756,7 +750,7 @@
           
           let contentHtml = "";
           if (d.text) contentHtml = `<div class="message-text">${escapeHtml(d.text)}</div>`;
-          if (d.imageBase64) contentHtml += `<img class="message-image" src="${d.imageBase64}" alt="image" loading="lazy" style="cursor: pointer;">`;
+          if (d.imageBase64) contentHtml += `<img class="message-image" src="${d.imageBase64}" alt="image" loading="lazy">`;
           if (d.audioBase64) contentHtml += `<audio controls src="${d.audioBase64}" preload="metadata"></audio>`;
           
           let timeStr = "";
@@ -794,11 +788,6 @@
             }
           }
         });
-      }, (error) => {
-        console.error("Messages listener error:", error);
-        if (error.code === "permission-denied") {
-          showToast("⚠️ Firebase permissions error! Please update security rules.", 5000);
-        }
       });
   }
   
@@ -838,7 +827,9 @@
   async function initAfterAuth(user) {
     currentUser = user;
     currentEmail = user.email;
+    
     await setOnlineStatus(true);
+    startHeartbeat();
     
     let savedName = localStorage.getItem(`wa_name_${user.uid}`);
     if (savedName) nameInput.value = savedName;
@@ -851,9 +842,12 @@
     listenTyping();
     msgInput.addEventListener("input", handleTyping);
     
-    checkAndRequestNotificationPermission();
-    
     showChatUI();
+    
+    // Show notification modal after UI is visible
+    setTimeout(() => {
+      checkAndRequestNotificationPermission();
+    }, 1500);
   }
   
   logoutBtn.addEventListener("click", async () => {
@@ -936,6 +930,7 @@
     if (user) {
       await initAfterAuth(user);
     } else {
+      stopHeartbeat();
       if (unsubscribeStatus) unsubscribeStatus();
       if (unsubscribeTyping) unsubscribeTyping();
       if (unsubscribeMessages) unsubscribeMessages();
@@ -950,7 +945,7 @@
     if (e.target.classList && e.target.classList.contains('message-image')) {
       const previewImg = document.getElementById('previewImage');
       previewImg.src = e.target.src;
-      imagePreviewModal.show();
+      if (imagePreviewModal) imagePreviewModal.show();
       
       document.getElementById('downloadPreviewBtn').onclick = () => {
         const link = document.createElement('a');
